@@ -6,17 +6,36 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Square } from "lucide-react";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { v4 as uuidv4 } from "@/lib/uuid";
 
 const ParticipantView = () => {
   const [name, setName] = useState("");
   const [opinion, setOpinion] = useState<Opinion | null>(null);
   const [corner, setCorner] = useState<number | null>(null);
   const [isJoined, setIsJoined] = useState(false);
+  const [participantId] = useState(() => uuidv4());
+  const { currentQuestion, updateParticipant } = useWebSocket();
 
   const handleJoin = () => {
     if (!name.trim()) return;
     setIsJoined(true);
-    // TODO: Add websocket connection logic here
+    updateParticipant({
+      id: participantId,
+      name: name.trim(),
+      opinion: null,
+      corner: null
+    });
+  };
+
+  const handleOpinionChange = (value: Opinion) => {
+    setOpinion(value);
+    updateParticipant({
+      id: participantId,
+      name,
+      opinion: value,
+      corner: null
+    });
   };
 
   const opinions: { value: Opinion; label: string }[] = [
@@ -54,7 +73,7 @@ const ParticipantView = () => {
           <div className="space-y-8">
             <h1 className="text-2xl font-bold text-center">Current Question</h1>
             <div className="text-center text-lg">
-              Technology has made our lives better.
+              {currentQuestion.text}
             </div>
 
             {corner ? (
@@ -69,7 +88,7 @@ const ParticipantView = () => {
               <div className="space-y-4">
                 <RadioGroup
                   value={opinion || ""}
-                  onValueChange={(value) => setOpinion(value as Opinion)}
+                  onValueChange={(value) => handleOpinionChange(value as Opinion)}
                 >
                   {opinions.map((opt) => (
                     <div key={opt.value} className="flex items-center space-x-2">

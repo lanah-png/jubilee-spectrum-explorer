@@ -3,12 +3,22 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import HostView from "@/components/HostView";
 import ParticipantView from "@/components/ParticipantView";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 const Index = () => {
   const [view, setView] = useState<"select" | "host" | "participant">("select");
 
-  if (view === "host") return <HostView />;
-  if (view === "participant") return <ParticipantView />;
+  if (view === "host") return (
+    <WebSocketProvider>
+      <HostView />
+    </WebSocketProvider>
+  );
+  
+  if (view === "participant") return (
+    <WebSocketProvider>
+      <ParticipantView />
+    </WebSocketProvider>
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

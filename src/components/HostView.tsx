@@ -1,62 +1,26 @@
 
-import { useState } from "react";
-import { Question, Participant } from "@/types/types";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Square } from "lucide-react";
 
 const HostView = () => {
-  const [currentQuestion, setCurrentQuestion] = useState<Question>({
-    id: "1",
-    text: "Technology has made our lives better.",
-  });
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const { currentQuestion, participants, assignCorners, nextQuestion } = useWebSocket();
   const { toast } = useToast();
 
-  const questions: Question[] = [
-    { id: "1", text: "Technology has made our lives better." },
-    { id: "2", text: "Social media is more harmful than beneficial." },
-    { id: "3", text: "Remote work is the future of employment." },
-  ];
-
-  const nextQuestion = () => {
-    const currentIndex = questions.findIndex(q => q.id === currentQuestion.id);
-    const nextIndex = (currentIndex + 1) % questions.length;
-    setCurrentQuestion(questions[nextIndex]);
-    
-    // Reset participant corners
-    setParticipants(prev => 
-      prev.map(p => ({ ...p, opinion: null, corner: null }))
-    );
-
-    toast({
-      title: "Next Question",
-      description: "Moving to the next discussion topic.",
-    });
-  };
-
-  const assignCorners = () => {
-    const participantsWithOpinions = participants.filter(p => p.opinion !== null);
-    
-    // Shuffle participants to randomize corner assignments
-    const shuffled = [...participantsWithOpinions].sort(() => Math.random() - 0.5);
-    
-    // Assign corners (1-4) to participants
-    const assigned = shuffled.map((p, index) => ({
-      ...p,
-      corner: (index % 4) + 1
-    }));
-    
-    setParticipants(prev => 
-      prev.map(p => {
-        const assigned_p = assigned.find(ap => ap.id === p.id);
-        return assigned_p || p;
-      })
-    );
-
+  const handleAssignCorners = () => {
+    assignCorners();
     toast({
       title: "Corners Assigned",
       description: "Participants can now move to their designated corners.",
+    });
+  };
+
+  const handleNextQuestion = () => {
+    nextQuestion();
+    toast({
+      title: "Next Question",
+      description: "Moving to the next discussion topic.",
     });
   };
 
@@ -74,14 +38,14 @@ const HostView = () => {
           <div className="space-y-4">
             <Button 
               className="w-full" 
-              onClick={assignCorners}
+              onClick={handleAssignCorners}
               size="lg"
             >
               Assign Corners
             </Button>
             <Button 
               className="w-full" 
-              onClick={nextQuestion}
+              onClick={handleNextQuestion}
               variant="outline"
               size="lg"
             >
