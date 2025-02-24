@@ -29,18 +29,27 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
   });
 
   useEffect(() => {
+    // Create WebSocket connection
     const ws = new WebSocket("ws://localhost:8080");
 
     ws.onopen = () => {
       console.log("Connected to WebSocket");
+      // Request initial state when connection opens
+      ws.send(JSON.stringify({ type: "GET_INITIAL_STATE" }));
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log("Received WebSocket message:", data);
       
       switch (data.type) {
         case "UPDATE_PARTICIPANTS":
+          console.log("Updating participants:", data.participants);
           setParticipants(data.participants);
+          break;
+        case "PARTICIPANT_JOINED":
+          console.log("New participant joined:", data.participant);
+          setParticipants(prev => [...prev, data.participant]);
           break;
         case "UPDATE_QUESTION":
           setCurrentQuestion(data.question);
@@ -67,6 +76,7 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
 
   const updateParticipant = (participant: Participant) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
+      console.log("Sending participant update:", participant);
       socket.send(JSON.stringify({
         type: "UPDATE_PARTICIPANT",
         participant
