@@ -28,8 +28,7 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
     text: "Technology has made our lives better.",
   });
 
-  useEffect(() => {
-    // Create WebSocket connection
+  const connectWebSocket = () => {
     const ws = new WebSocket("ws://localhost:8080");
 
     ws.onopen = () => {
@@ -43,16 +42,37 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
       console.log("Received WebSocket message:", data);
       
       switch (data.type) {
+        case "INITIAL_STATE":
+          console.log("Setting initial state:", data);
+          setParticipants(data.participants || []);
+          if (data.currentQuestion) {
+            setCurrentQuestion(data.currentQuestion);
+          }
+          break;
         case "UPDATE_PARTICIPANTS":
           console.log("Updating participants:", data.participants);
           setParticipants(data.participants);
           break;
         case "PARTICIPANT_JOINED":
           console.log("New participant joined:", data.participant);
-          setParticipants(prev => [...prev, data.participant]);
+          setParticipants(prev => {
+            // Check if participant already exists
+            const exists = prev.some(p => p.id === data.participant.id);
+            if (exists) {
+              return prev.map(p => 
+                p.id === data.participant.id ? data.participant : p
+              );
+            }
+            return [...prev, data.participant];
+          });
           break;
         case "UPDATE_QUESTION":
           setCurrentQuestion(data.question);
+          break;
+        case "CONNECTION_ERROR":
+          console.error("WebSocket connection error:", data.error);
+          // Attempt to reconnect after a delay
+          setTimeout(connectWebSocket, 3000);
           break;
         default:
           console.log("Unknown message type:", data.type);
@@ -65,12 +85,21 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
 
     ws.onclose = () => {
       console.log("Disconnected from WebSocket");
+      // Attempt to reconnect after a delay
+      setTimeout(connectWebSocket, 3000);
     };
 
     setSocket(ws);
 
     return () => {
       ws.close();
+    };
+  };
+
+  useEffect(() => {
+    const cleanup = connectWebSocket();
+    return () => {
+      if (cleanup) cleanup();
     };
   }, []);
 
