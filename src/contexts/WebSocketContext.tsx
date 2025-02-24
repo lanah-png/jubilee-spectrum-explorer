@@ -6,7 +6,7 @@ type WebSocketContextType = {
   participants: Participant[];
   currentQuestion: Question;
   updateParticipant: (participant: Participant) => void;
-  assignCorners: () => void;
+  assignParticipantToCorner: (participantId: string, corner: number) => void;
   nextQuestion: () => void;
 };
 
@@ -29,7 +29,6 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
   });
 
   useEffect(() => {
-    // Initialize WebSocket connection
     const ws = new WebSocket("ws://localhost:8080");
 
     ws.onopen = () => {
@@ -75,10 +74,12 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
     }
   };
 
-  const assignCorners = () => {
+  const assignParticipantToCorner = (participantId: string, corner: number) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({
-        type: "ASSIGN_CORNERS"
+        type: "ASSIGN_CORNER",
+        participantId,
+        corner
       }));
     }
   };
@@ -96,11 +97,10 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
       participants,
       currentQuestion,
       updateParticipant,
-      assignCorners,
+      assignParticipantToCorner,
       nextQuestion
     }}>
       {children}
     </WebSocketContext.Provider>
   );
 };
-
