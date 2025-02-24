@@ -1,11 +1,38 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import HostView from "@/components/HostView";
+import ParticipantView from "@/components/ParticipantView";
 
 const Index = () => {
+  const [view, setView] = useState<"select" | "host" | "participant">("select");
+
+  if (view === "host") return <HostView />;
+  if (view === "participant") return <ParticipantView />;
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center space-y-8">
+        <h1 className="text-4xl font-bold mb-8">Discussion Corner</h1>
+        <div className="space-y-4">
+          <Button
+            className="w-64"
+            size="lg"
+            onClick={() => setView("host")}
+          >
+            Host View
+          </Button>
+          <div>
+            <Button
+              className="w-64"
+              variant="outline"
+              size="lg"
+              onClick={() => setView("participant")}
+            >
+              Join as Participant
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
